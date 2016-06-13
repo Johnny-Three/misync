@@ -12,7 +12,7 @@ var listening string
 var config_file_path string
 
 func init() {
-	flag.StringVar(&config_file_path, "c", "config.ini", "Use -c <filepath>")
+	flag.StringVar(&config_file_path, "c", "../etc/config.ini", "Use -c <filepath>")
 }
 
 func GetDB() *sql.DB {

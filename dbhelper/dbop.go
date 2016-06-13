@@ -70,29 +70,39 @@ func InsertWalkHour(db *sql.DB, uc *User_walkdays_struct) error {
 	//天内跨小时,也写增量..
 	if !spanday && util.JudgeInSameHour(uc.LastuploadTime, time.Now().Unix()) == false {
 
-		//fmt.Println("i am in your span")
+		var currentsteps, formersteps int
+		if rsteps, ok := Map.Get(uc.Uid); ok {
+			currentsteps = rsteps.(int)
+		} else {
+			return errors.New("map中没有user:" + strconv.Itoa(uc.Uid))
+		}
 
-		sqlStr := `INSERT INTO wanbu_data_walkhour (userid, walkdate, timestamp,servertime, hour0, hour1, hour2, hour3, hour4, hour5, hour6, hour7, hour8, hour9, hour10, hour11, hour12, hour13, hour14, hour15, hour16, hour17, hour18, hour19, hour20, hour21, hour22, hour23, hour24, hour25 ) VALUES `
+		if fsteps, ok := MapOld.Get(uc.Uid); ok {
+			formersteps = fsteps.(int)
+		} else {
+			return errors.New("mapold中没有user:" + strconv.Itoa(uc.Uid))
+		}
 
-		uds := uc.Walkdays[0]
-		var hour HourData
-		hour.Init()
-		vals := []interface{}{}
-		AssginHourData(&hour, &uds)
-		sqlStr += "(?,?,UNIX_TIMESTAMP(),UNIX_TIMESTAMP(),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?),"
-		vals = append(vals, uc.Uid, uds.Walkdate, hour.H0, hour.H1, hour.H2, hour.H3, hour.H4, hour.H5, hour.H6, hour.H7, hour.H8, hour.H9, hour.H10, hour.H11, hour.H12, hour.H13, hour.H14, hour.H15, hour.H16, hour.H17, hour.H18, hour.H19, hour.H20, hour.H21, hour.H22, hour.H23, 0, 0)
+		increment := currentsteps - formersteps
+		fmt.Println("increment is", increment)
 
-		//trim the last ,
-		sqlStr = sqlStr[0 : len(sqlStr)-1]
+		column := "hour" + strconv.Itoa(time.Now().Hour())
 
-		sqlStr += `ON DUPLICATE KEY UPDATE timestamp = VALUES(timestamp),servertime = VALUES(servertime),hour0 = VALUES(hour0),hour1 = VALUES(hour1),hour2 = VALUES(hour2),hour3 = VALUES(hour3),hour4 = VALUES(hour4),hour5 = VALUES(hour5),hour6 = VALUES(hour6),hour7 = VALUES(hour7),hour8 = VALUES(hour8),hour9 = VALUES(hour9),hour10 = VALUES(hour10),hour11 = VALUES(hour11),hour12 = VALUES(hour12),hour13 = VALUES(hour13),hour14 = VALUES(hour14),hour15 = VALUES(hour15),hour16 = VALUES(hour16),hour17 = VALUES(hour17),hour18 = VALUES(hour18),hour19 = VALUES(hour19),hour20 = VALUES(hour20),hour21 = VALUES(hour21),hour22 = VALUES(hour22),hour23 = VALUES(hour23)`
+		newsteps := increment
+		newstepwith := uc.Walkdays[0].Stepwidth
+		newvalue := fmt.Sprintf("%d,%d,%d,%d,0,0", newsteps, newsteps*newstepwith, newsteps, newsteps*newstepwith)
 
-		_, err := db.Exec(sqlStr, vals...)
+		fmt.Println("天内跨小时写增量", newsteps, newstepwith, newvalue)
+
+		//重新运算，更新DB
+		us := "update wanbu_data_walkhour set " + column + "= '" + newvalue + "' where userid = ? and walkdate = ? "
+
+		_, err := db.Exec(us, uc.Uid, uc.Walkdays[0].Walkdate)
 
 		if err != nil {
-			fmt.Println("hi err is here 1")
 			return err
 		}
+
 	}
 
 	//小时内增量增长，拿到上次请求时的步数，跟此次的请求做比较，得到增量值,update时候算加和
