@@ -12,7 +12,7 @@ import (
 )
 
 var err error
-var version string = "1.0.0PR1"
+var version string = "1.0.0PR2"
 
 func main() {
 
@@ -60,7 +60,8 @@ func main() {
 
 	}()
 
-	timer := time.NewTicker(time.Duration(interval) * time.Second)
+	fmt.Println("interval is", interval)
+	timer := time.NewTicker(time.Duration(1) * time.Millisecond)
 	defer timer.Stop()
 	for {
 		select {
@@ -80,8 +81,8 @@ func main() {
 			timer = time.NewTicker(time.Duration(interval) * time.Second)
 
 		default:
-			time.Sleep(2 * time.Second)
-			fmt.Println("休息2s，继续工作！")
+			time.Sleep(1 * time.Second)
+			//fmt.Println("休息2s，继续工作！")
 		}
 	}
 }

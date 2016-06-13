@@ -68,7 +68,7 @@ func DealReuqest(rein *Miu) ([]Miu, error) {
 func Sync(uids []*Miu, def int) {
 
 	stepth := len(uids) / def
-	fmt.Println("stepth is: ", stepth)
+	//fmt.Println("stepth is: ", stepth)
 
 	for i := 0; i < stepth; i++ {
 

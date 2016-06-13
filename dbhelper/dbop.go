@@ -70,10 +70,9 @@ func InsertWalkHour(db *sql.DB, uc *User_walkdays_struct) error {
 	//天内跨小时,也写增量..
 	if !spanday && util.JudgeInSameHour(uc.LastuploadTime, time.Now().Unix()) == false {
 
-		fmt.Println("i am in your span")
+		//fmt.Println("i am in your span")
 
-		sqlStr := `
-	   INSERT INTO wanbu_data_walkhour (userid, walkdate, timestamp,servertime, hour0, hour1, hour2, hour3, hour4, hour5, hour6, hour7, hour8, hour9, hour10, hour11, hour12, hour13, hour14, hour15, hour16, hour17, hour18, hour19, hour20, hour21, hour22, hour23, hour24, hour25 ) VALUES `
+		sqlStr := `INSERT INTO wanbu_data_walkhour (userid, walkdate, timestamp,servertime, hour0, hour1, hour2, hour3, hour4, hour5, hour6, hour7, hour8, hour9, hour10, hour11, hour12, hour13, hour14, hour15, hour16, hour17, hour18, hour19, hour20, hour21, hour22, hour23, hour24, hour25 ) VALUES `
 
 		uds := uc.Walkdays[0]
 		var hour HourData
@@ -97,6 +96,8 @@ func InsertWalkHour(db *sql.DB, uc *User_walkdays_struct) error {
 	}
 
 	//小时内增量增长，拿到上次请求时的步数，跟此次的请求做比较，得到增量值,update时候算加和
+	//!spanday && util.JudgeInSameHour(uc.LastuploadTime, time.Now().Unix()) == true
+	//fmt.Println("span day", spanday)
 	if !spanday && util.JudgeInSameHour(uc.LastuploadTime, time.Now().Unix()) == true {
 
 		var currentsteps, formersteps int
@@ -137,6 +138,8 @@ func InsertWalkHour(db *sql.DB, uc *User_walkdays_struct) error {
 		newsteps := oldvalue + increment
 		newstepwith := uc.Walkdays[0].Stepwidth
 		newvalue := fmt.Sprintf("%d,%d,%d,%d,0,0", newsteps, newsteps*newstepwith, newsteps, newsteps*newstepwith)
+
+		fmt.Println("everything is new ", newsteps, newstepwith, newvalue)
 
 		//重新运算，更新DB
 		us := "update wanbu_data_walkhour set " + column + "= '" + newvalue + "' where userid = ? and walkdate = ? "

@@ -69,7 +69,7 @@ func Decode(msg Reback) error {
 				//Get Steps,if no change then won't do anyting ..
 				if st == tmp.(int) {
 
-					fmt.Printf("用户：%d 日期：%s，步数值:%s 与上次获取时无变化，不更新表", msg.Userid, walkdate, step)
+					fmt.Printf("用户：%d 日期：%s，步数值:%s 与上次获取时无变化，不更新表\n", msg.Userid, walkdate, step)
 					return nil
 					//插入成功后再更新这个新值么？异常回退流程值得商榷
 				} else {
@@ -79,7 +79,7 @@ func Decode(msg Reback) error {
 				}
 			} else {
 
-				//混沌出开的时候并不存在map值,mapold里面放入0
+				//混沌初开的时候并不存在map值,mapold里面放入0
 				Map.Set(msg.Userid, st)
 				MapOld.Set(msg.Userid, 0)
 			}
