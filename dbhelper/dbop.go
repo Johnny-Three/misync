@@ -50,7 +50,7 @@ func InsertWalkHour(db *sql.DB, uc *User_walkdays_struct) error {
 
 			sqlStr += "(?,?,UNIX_TIMESTAMP(),UNIX_TIMESTAMP(),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?),"
 
-			vals = append(vals, uc.Uid, uds.Walkdate, hour.H0, hour.H1, hour.H2, hour.H3, hour.H4, hour.H5, hour.H6, hour.H7, hour.H8, hour.H9, hour.H10, hour.H11, hour.H12, hour.H13, hour.H14, hour.H15, hour.H16, hour.H17, hour.H18, hour.H19, hour.H20, hour.H21, hour.H22, hour.H23, 0, 0)
+			vals = append(vals, uc.Uid, uds.Walkdate, hour.H0, hour.H1, hour.H2, hour.H3, hour.H4, hour.H5, hour.H6, hour.H7, hour.H8, hour.H9, hour.H10, hour.H11, hour.H12, hour.H13, hour.H14, hour.H15, hour.H16, hour.H17, hour.H18, hour.H19, hour.H20, hour.H21, hour.H22, hour.H23, "0,0,0,0,0,0", "0,0,0,0,0,0")
 		}
 
 		//trim the last ,
@@ -81,6 +81,37 @@ func InsertWalkHour(db *sql.DB, uc *User_walkdays_struct) error {
 			formersteps = fsteps.(int)
 		} else {
 			return errors.New("mapold中没有user:" + strconv.Itoa(uc.Uid))
+		}
+
+		//重新计算formersteps，需要从小时数据中解析出来所有的有数据的小时，然并加..
+		if formersteps == 0 {
+
+			hour := time.Unix(uc.LastuploadTime, 0).Hour()
+			sqlStr := "select "
+			for i := 0; i <= hour; i++ {
+
+				column := "hour" + strconv.Itoa(i)
+				sqlStr += "SUBSTRING_INDEX(" + column + ",',',1)+0 +"
+
+			}
+
+			//trim the last +
+			sqlStr = sqlStr[0 : len(sqlStr)-1]
+			sqlStr += "from wanbu_data_walkhour where userid = ? and walkdate = ?"
+
+			rows, err := db.Query(sqlStr, uc.Uid, uc.Walkdays[0].Walkdate)
+			if err != nil {
+				return err
+			}
+			defer rows.Close()
+			for rows.Next() {
+
+				err := rows.Scan(&formersteps)
+				if err != nil {
+					return err
+				}
+			}
+			fmt.Println("重新计算后的formersteps ", formersteps)
 		}
 
 		increment := currentsteps - formersteps
@@ -244,10 +275,11 @@ func ModifyStatus(db *sql.DB, uid int) error {
 	return nil
 }
 
-//检查wanbu_miu_sync表中的这些人，有哪些已经不再使用小米设备了，更新flag字段
+//检查wanbu_mi_sync表中的这些人，有哪些已经不再使用小米设备了，更新flag字段
 func ModifyPerson(db *sql.DB) error {
 
-	us := "update wanbu_mi_sync set flag = 1 where id in (select id from wanbu_miu_sync ws, wanbu_data_userdevice wu where ws.userid = wu.userid and wu.deviceserial !=?)"
+	us := "update wanbu_mi_sync ws , wanbu_data_userdevice wu set flag = 1  where ws.userid = wu.userid and wu.deviceserial !=?"
+
 	_, err := db.Exec(us, miuserial)
 
 	if err != nil {
