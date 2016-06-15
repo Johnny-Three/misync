@@ -200,7 +200,7 @@ func InsertWalkHour(db *sql.DB, uc *User_walkdays_struct) error {
 func InsertWalkDay(db *sql.DB, uc *User_walkdays_struct) error {
 
 	//if DaysDiff
-
+	//IF(stepnumber < VALUES(stepnumber),VALUES(exerciseamount), exerciseamount)
 	sqlStr := `
 	   INSERT INTO wanbu_data_walkday (userid, walkdate, timestamp, servertime, deviceserial, stepwidth, weight, goalstepnum, stepnumber, walkdistance, walktime, calorieconsumed, fatconsumed, exerciseamount, heartvalue, timezonenum, timezone, manualflag, zmflag, faststepnum, dataflag) 
 	   VALUES`
@@ -216,7 +216,11 @@ func InsertWalkDay(db *sql.DB, uc *User_walkdays_struct) error {
 	//trim the last ,
 	sqlStr = sqlStr[0 : len(sqlStr)-1]
 
-	sqlStr += `ON DUPLICATE KEY UPDATE timestamp = VALUES(timestamp),servertime = VALUES(servertime),stepwidth = VALUES(stepwidth),weight = VALUES(weight),goalstepnum = VALUES(goalstepnum),stepnumber = VALUES(stepnumber),walkdistance = VALUES(walkdistance),walktime = VALUES(walktime),calorieconsumed = VALUES(calorieconsumed),fatconsumed = VALUES(fatconsumed),exerciseamount = VALUES(exerciseamount)`
+	/*
+		sqlStr += `ON DUPLICATE KEY UPDATE timestamp = VALUES(timestamp),servertime = VALUES(servertime),stepwidth = VALUES(stepwidth),weight = VALUES(weight),goalstepnum = VALUES(goalstepnum),stepnumber = VALUES(stepnumber),walkdistance = VALUES(walkdistance),walktime = VALUES(walktime),calorieconsumed = VALUES(calorieconsumed),fatconsumed = VALUES(fatconsumed),exerciseamount = VALUES(exerciseamount)`
+	*/
+
+	sqlStr += `ON DUPLICATE KEY UPDATE timestamp =  IF(stepnumber < VALUES(stepnumber),VALUES(timestamp), timestamp),servertime = IF(stepnumber < VALUES(stepnumber),VALUES(servertime), servertime),stepwidth = IF(stepnumber < VALUES(stepnumber),VALUES(stepwidth), stepwidth),weight = IF(stepnumber < VALUES(stepnumber),VALUES(weight), weight),goalstepnum = IF(stepnumber < VALUES(stepnumber),VALUES(goalstepnum), goalstepnum),stepnumber = IF(stepnumber < VALUES(stepnumber),VALUES(stepnumber), stepnumber),walkdistance = IF(stepnumber < VALUES(stepnumber),VALUES(walkdistance), walkdistance),walktime = IF(stepnumber < VALUES(stepnumber),VALUES(walktime), walktime),calorieconsumed = IF(stepnumber < VALUES(stepnumber),VALUES(calorieconsumed), calorieconsumed),fatconsumed = IF(stepnumber < VALUES(stepnumber),VALUES(fatconsumed), fatconsumed),exerciseamount = IF(stepnumber < VALUES(stepnumber),VALUES(exerciseamount), exerciseamount)`
 
 	//format all vals at once
 	_, err := db.Exec(sqlStr, vals...)

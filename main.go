@@ -12,7 +12,7 @@ import (
 )
 
 var err error
-var version string = "1.0.0PR5"
+var version string = "1.0.0PR7"
 
 func main() {
 
@@ -66,11 +66,13 @@ func main() {
 	for {
 		select {
 		case <-timer.C:
-			err = ModifyPerson(db)
-			if err != nil {
-				Logger.Critical(err.Error())
-				return
-			}
+			/*
+				err = ModifyPerson(db)
+				if err != nil {
+					Logger.Critical(err.Error())
+					return
+				}
+			*/
 			mius, err0 := GetAllPerson(db)
 			if err0 != nil {
 				Logger.Critical(err0.Error())
