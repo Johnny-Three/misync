@@ -17,10 +17,11 @@ func init() {
 
 func Post(r *Miu) {
 
-	//fmt.Println("miu is", r)
 	url := "https://hmservice.mi-ae.com.cn/user/summary/getData"
 
 	re := fmt.Sprintf("%s?appid=%s&third_appid=%s&third_appsecret=%s&access_token=%s&mac_key=%s&call_id=%s&fromdate=%s&todate=%s&v=%s&l=%s", url, r.Appid, r.Third_appid, r.Third_appsecret, r.Access_token, r.Mac_key, r.Call_id, r.Fromdate, r.Todate, r.V, r.L)
+
+	fmt.Println(re)
 
 	resp, err := http.Get(re)
 

@@ -41,7 +41,7 @@ func Decode(msg Reback) error {
 	var ad AnswerData
 	walkdays := []AnswerData{}
 
-	//fmt.Println("in decode the msg is", msg)
+	fmt.Println("in decode the msg is", msg)
 	arr, _ := js.Get("data").Array()
 	for index, _ := range arr {
 
@@ -144,7 +144,7 @@ func Decode(msg Reback) error {
 	uc.Uid = msg.Userid
 	uc.LastuploadTime = msg.LastuploadTime
 	uc.Walkdays = walkdays
-	fmt.Println("uc is ", uc)
+	fmt.Println("uc is", uc)
 
 	User_walk_data_chan <- uc
 

@@ -12,7 +12,7 @@ import (
 )
 
 var err error
-var version string = "1.0.0PR7"
+var version string = "1.0.0PR8"
 
 func main() {
 
