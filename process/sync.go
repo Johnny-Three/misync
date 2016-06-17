@@ -83,6 +83,15 @@ func Sync(uids []*Miu, def int) {
 				//todo .. 处理每个用户，从小米获取信息，处理信息并入库
 				fmt.Println("hi,Sync is running in batch ")
 
+				res, err := DealReuqest(uids[j])
+				if err != nil {
+					Logger.Critical(err)
+					return
+				}
+				for i := 0; i < len(res); i++ {
+					client.Post(&res[i])
+				}
+
 			}(j)
 		}
 		wg.Wait()
