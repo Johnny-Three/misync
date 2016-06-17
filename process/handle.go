@@ -40,8 +40,8 @@ func Decode(msg Reback) error {
 
 	var ad AnswerData
 	walkdays := []AnswerData{}
-
-	fmt.Println("in decode the msg is", msg)
+	Logger.Debug("in decode the msg is", msg)
+	Logger.Info("in decode the msg is", msg)
 	arr, _ := js.Get("data").Array()
 	for index, _ := range arr {
 

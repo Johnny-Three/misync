@@ -34,7 +34,6 @@ func Post(r *Miu) {
 		re.Userid = r.Userid
 		re.LastuploadTime = r.LastuploadTime
 		re.JsonCode = string(body)
-		Logger.Info("post msg 【", r, "】")
 		Post_request_chan <- re
 	}
 }

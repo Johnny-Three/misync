@@ -26,6 +26,10 @@ func InsertWalkHour(db *sql.DB, uc *User_walkdays_struct) error {
 	//跨天所有数据写h23，天内跨小时写当前小时（直接写）、小时内同样写当前小时(增量写)
 
 	var spanday bool
+
+	//跨天的第一个条件：修改了lastuploadtime为昨天且今天无数据，相当于重新写昨天的小时数据，有很大的风险，因为这将会重写昨天的小时数据到23点)  (currentdate != enddate && enddate == begindate) ，考虑后还是先不加，本身逻辑有问题且不合乎事宜
+	//问题描述：今日无数据，昨日有数据，修改lastuploadtime为昨天，因为spanday不跨天,会进入小时增量的分支
+
 	//跨天
 	if util.DaysDiff(enddate, begindate) > 0 {
 
@@ -69,6 +73,8 @@ func InsertWalkHour(db *sql.DB, uc *User_walkdays_struct) error {
 
 	//天内跨小时,也写增量..
 	if !spanday && util.JudgeInSameHour(uc.LastuploadTime, time.Now().Unix()) == false {
+
+		fmt.Println("in tian kua", uc.LastuploadTime, time.Now().Unix())
 
 		var currentsteps, formersteps int
 		if rsteps, ok := Map.Get(uc.Uid); ok {
@@ -220,7 +226,12 @@ func InsertWalkDay(db *sql.DB, uc *User_walkdays_struct) error {
 		sqlStr += `ON DUPLICATE KEY UPDATE timestamp = VALUES(timestamp),servertime = VALUES(servertime),stepwidth = VALUES(stepwidth),weight = VALUES(weight),goalstepnum = VALUES(goalstepnum),stepnumber = VALUES(stepnumber),walkdistance = VALUES(walkdistance),walktime = VALUES(walktime),calorieconsumed = VALUES(calorieconsumed),fatconsumed = VALUES(fatconsumed),exerciseamount = VALUES(exerciseamount)`
 	*/
 
-	sqlStr += `ON DUPLICATE KEY UPDATE timestamp =  IF(stepnumber < VALUES(stepnumber),VALUES(timestamp), timestamp),servertime = IF(stepnumber < VALUES(stepnumber),VALUES(servertime), servertime),stepwidth = IF(stepnumber < VALUES(stepnumber),VALUES(stepwidth), stepwidth),weight = IF(stepnumber < VALUES(stepnumber),VALUES(weight), weight),goalstepnum = IF(stepnumber < VALUES(stepnumber),VALUES(goalstepnum), goalstepnum),stepnumber = IF(stepnumber < VALUES(stepnumber),VALUES(stepnumber), stepnumber),walkdistance = IF(stepnumber < VALUES(stepnumber),VALUES(walkdistance), walkdistance),walktime = IF(stepnumber < VALUES(stepnumber),VALUES(walktime), walktime),calorieconsumed = IF(stepnumber < VALUES(stepnumber),VALUES(calorieconsumed), calorieconsumed),fatconsumed = IF(stepnumber < VALUES(stepnumber),VALUES(fatconsumed), fatconsumed),exerciseamount = IF(stepnumber < VALUES(stepnumber),VALUES(exerciseamount), exerciseamount)`
+	/*
+		sqlStr += `ON DUPLICATE KEY UPDATE timestamp =  IF(stepnumber < VALUES(stepnumber),VALUES(timestamp), timestamp),servertime = IF(stepnumber < VALUES(stepnumber),VALUES(servertime), servertime),stepwidth = IF(stepnumber < VALUES(stepnumber),VALUES(stepwidth), stepwidth),weight = IF(stepnumber < VALUES(stepnumber),VALUES(weight), weight),goalstepnum = IF(stepnumber < VALUES(stepnumber),VALUES(goalstepnum), goalstepnum),stepnumber = IF(stepnumber < VALUES(stepnumber),VALUES(stepnumber), stepnumber),walkdistance = IF(stepnumber < VALUES(stepnumber),VALUES(walkdistance), walkdistance),walktime = IF(stepnumber < VALUES(stepnumber),VALUES(walktime), walktime),calorieconsumed = IF(stepnumber < VALUES(stepnumber),VALUES(calorieconsumed), calorieconsumed),fatconsumed = IF(stepnumber < VALUES(stepnumber),VALUES(fatconsumed), fatconsumed),exerciseamount = IF(stepnumber < VALUES(stepnumber),VALUES(exerciseamount), exerciseamount)`
+	*/
+
+	sqlStr += `
+		ON DUPLICATE KEY UPDATE timestamp =  IF(stepnumber < VALUES(stepnumber),VALUES(timestamp), timestamp),servertime = IF(stepnumber < VALUES(stepnumber),VALUES(servertime), servertime),stepwidth = IF(stepnumber < VALUES(stepnumber),VALUES(stepwidth), stepwidth),weight = IF(stepnumber < VALUES(stepnumber),VALUES(weight), weight),goalstepnum = IF(stepnumber < VALUES(stepnumber),VALUES(goalstepnum), goalstepnum),walkdistance = IF(stepnumber < VALUES(stepnumber),VALUES(walkdistance),walkdistance),walktime = IF(stepnumber < VALUES(stepnumber),VALUES(walktime), walktime),calorieconsumed = IF(stepnumber < VALUES(stepnumber),VALUES(calorieconsumed), calorieconsumed),fatconsumed = IF(stepnumber < VALUES(stepnumber),VALUES(fatconsumed), fatconsumed),exerciseamount = IF(stepnumber < VALUES(stepnumber),VALUES(exerciseamount), exerciseamount),deviceserial=IF(stepnumber < VALUES(stepnumber),VALUES(deviceserial),deviceserial),stepnumber = IF(stepnumber < VALUES(stepnumber),VALUES(stepnumber), stepnumber)`
 
 	//format all vals at once
 	_, err := db.Exec(sqlStr, vals...)
@@ -265,7 +276,6 @@ func ModifyLastuploadtime(db *sql.DB, m *User_walkdays_struct) error {
 		return err
 	}
 	return nil
-
 }
 
 func ModifyStatus(db *sql.DB, uid int) error {
