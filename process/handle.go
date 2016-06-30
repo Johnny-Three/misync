@@ -40,8 +40,8 @@ func Decode(msg Reback) error {
 
 	var ad AnswerData
 	walkdays := []AnswerData{}
-	Logger.Debug("in decode the msg is", msg)
-	Logger.Info("in decode the msg is", msg)
+	//Logger.Debug("in decode the msg is", msg)
+	//Logger.Info("in decode the msg is", msg)
 	arr, _ := js.Get("data").Array()
 	for index, _ := range arr {
 
@@ -74,11 +74,13 @@ func Decode(msg Reback) error {
 					//插入成功后再更新这个新值么？异常回退流程值得商榷
 				} else {
 
+					Logger.Info("Get msg:", msg)
 					MapOld.Set(msg.Userid, tmp)
 					Map.Set(msg.Userid, st)
 				}
 			} else {
 
+				Logger.Info("Get msg:", msg)
 				//混沌初开的时候并不存在map值,mapold里面放入0
 				Map.Set(msg.Userid, st)
 				MapOld.Set(msg.Userid, 0)

@@ -21,7 +21,7 @@ func Post(r *Miu) {
 
 	re := fmt.Sprintf("%s?appid=%s&third_appid=%s&third_appsecret=%s&access_token=%s&mac_key=%s&call_id=%s&fromdate=%s&todate=%s&v=%s&l=%s", url, r.Appid, r.Third_appid, r.Third_appsecret, r.Access_token, r.Mac_key, r.Call_id, r.Fromdate, r.Todate, r.V, r.L)
 
-	fmt.Printf("userid【%d】,request【%s】", r.Userid, re)
+	//fmt.Printf("userid【%d】,request【%s】", r.Userid, re)
 
 	resp, err := http.Get(re)
 
