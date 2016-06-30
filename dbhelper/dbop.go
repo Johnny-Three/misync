@@ -359,6 +359,7 @@ func GetAllPerson(db *sql.DB) ([]*Miu, error) {
 		if err0 != nil {
 			return nil, err0
 		}
+
 		res = append(res, re)
 
 	}

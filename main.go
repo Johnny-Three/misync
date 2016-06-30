@@ -12,7 +12,7 @@ import (
 )
 
 var err error
-var version string = "1.0.0PR10"
+var version string = "1.0.0PR11"
 
 func main() {
 
@@ -31,7 +31,7 @@ func main() {
 		panic(err.Error())
 	}
 
-	Logger.Info("人生得意须尽欢，Misync启动啦~！")
+	Logger.Info("Misync running for once time ==================")
 
 	//开启返回消息处理goroutine
 	go HandleAnswer()
