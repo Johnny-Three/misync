@@ -81,7 +81,7 @@ func Sync(uids []*Miu, def int) {
 			go func(j int) {
 				defer wg.Done()
 				//todo .. 处理每个用户，从小米获取信息，处理信息并入库
-				fmt.Println("hi,Sync is running in batch ")
+				//fmt.Println("hi,Sync is running in batch ")
 				res, err := DealReuqest(uids[j])
 				if err != nil {
 					Logger.Critical(err)
@@ -108,7 +108,7 @@ func Sync(uids []*Miu, def int) {
 			go func(j int) {
 				defer wg.Done()
 				//todo .. 处理每个用户，从小米获取信息，处理信息并入库
-				fmt.Println("hi,Sync is running in yu ")
+				//fmt.Println("hi,Sync is running in yu ")
 				res, err := DealReuqest(uids[j])
 				if err != nil {
 					fmt.Println(err)

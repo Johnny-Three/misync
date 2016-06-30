@@ -47,8 +47,8 @@ func Post(r *Miu) {
 	re := fmt.Sprintf("%s?appid=%s&third_appid=%s&third_appsecret=%s&access_token=%s&mac_key=%s&call_id=%s&fromdate=%s&todate=%s&v=%s&l=%s", url, r.Appid, r.Third_appid, r.Third_appsecret, r.Access_token, r.Mac_key, r.Call_id, r.Fromdate, r.Todate, r.V, r.L)
 
 	//fmt.Printf("userid【%d】,request【%s】\n", r.Userid, re)
-
-	timeout := time.Duration(5 * time.Second)
+	//设置超时10S
+	timeout := time.Duration(10 * time.Second)
 	client := &http.Client{
 		Timeout: timeout,
 	}
@@ -66,5 +66,4 @@ func Post(r *Miu) {
 	}
 
 	//defer resp.Body.Close()
-
 }
