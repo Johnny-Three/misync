@@ -45,22 +45,25 @@ func main() {
 			case m := <-User_walk_data_chan:
 				err := InsertWalkDay(db, &m)
 				if err != nil {
-					fmt.Println("insert db", err)
+					fmt.Println("InsertWalkDay db", err)
+					Logger.Critical("InsertWalkDay db", err)
 				}
-				fmt.Println("insert walkdata")
+				//fmt.Println("insert walkdata")
 
 				//todo..更新insertwalkhour..
 				err = InsertWalkHour(db, &m)
 				if err != nil {
-					fmt.Println("insert db", err)
+					fmt.Println("InsertWalkHour db", err)
+					Logger.Critical("InsertWalkHour db", err)
 				}
-				fmt.Println("insert walkhour")
+				//fmt.Println("insert walkhour")
 
 				//更新上次上传时间，取最近获取数据消息的那天，进行更新操作
 				err = ModifyLastuploadtime(db, &m)
-				fmt.Println("modify lastupload time")
+				//fmt.Println("modify lastupload time")
 				if err != nil {
-					fmt.Println("insert db", err)
+					fmt.Println("ModifyLastuploadtime db", err)
+					Logger.Critical("ModifyLastuploadtime db", err)
 				}
 			}
 		}
