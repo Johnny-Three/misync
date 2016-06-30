@@ -302,12 +302,45 @@ func ModifyPerson(db *sql.DB) error {
 	return nil
 }
 
+func GetAllPerson1(db *sql.DB) ([]*Miu, error) {
+
+	res := []*Miu{}
+
+	//一次性获取需要更新数据的人，找到授权码未过期并且当前绑定设备为小秘手环的人
+	//qs := "select userid,appid,accesstoken,mackey from  wanbu_mi_sync where flag=0 and status =0 "
+	qs := "select ws.userid,ws.appid,ws.accesstoken,ws.mackey,from_unixtime(wu.lastuploadtime,'%Y-%m-%d'),wu.lastuploadtime from  wanbu_mi_sync ws,wanbu_data_userdevice wu where ws.flag=0 and ws.status =0 and ws.userid = wu.userid"
+	rows, err := db.Query(qs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var t int64 = time.Now().Unix()
+	//截止到当前时间
+	var s string = time.Unix(t, 0).Format("2006-01-02")
+	for rows.Next() {
+
+		re := &Miu{}
+		re.MiuPrepare()
+		err := rows.Scan(&re.Userid, &re.Appid, &re.Access_token, &re.Mac_key, &re.Fromdate, &re.LastuploadTime)
+		if err != nil {
+			return nil, err
+		}
+
+		re.Todate = s
+		res = append(res, re)
+
+	}
+	//fmt.Println("GetAllPerson...", res)
+	return res, nil
+}
+
 func GetAllPerson(db *sql.DB) ([]*Miu, error) {
 
 	res := []*Miu{}
 
 	//一次性获取需要更新数据的人，找到授权码未过期并且当前绑定设备为小秘手环的人
 	qs := "select userid,appid,accesstoken,mackey from  wanbu_mi_sync where flag=0 and status =0 "
+
 	rows, err := db.Query(qs)
 	if err != nil {
 		return nil, err
@@ -322,7 +355,6 @@ func GetAllPerson(db *sql.DB) ([]*Miu, error) {
 			return nil, err
 		}
 
-		//获取需要更新的时间
 		err0 := GetDate(re, db)
 		if err0 != nil {
 			return nil, err0

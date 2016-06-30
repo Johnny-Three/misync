@@ -12,7 +12,7 @@ import (
 )
 
 var err error
-var version string = "1.0.0PR9"
+var version string = "1.0.0PR10"
 
 func main() {
 
@@ -30,6 +30,8 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+
+	Logger.Info("人生得意须尽欢，Misync启动啦~！")
 
 	//开启返回消息处理goroutine
 	go HandleAnswer()
@@ -71,19 +73,18 @@ func main() {
 	for {
 		select {
 		case <-timer.C:
-			/*
-				err = ModifyPerson(db)
-				if err != nil {
-					Logger.Critical(err.Error())
-					return
-				}
-			*/
+
+			start := time.Now()
 			mius, err0 := GetAllPerson(db)
+			fmt.Println("load db game over the len of mius is", len(mius))
+			Logger.Info("load db game over the len of mius is", len(mius))
+			elapsed := time.Since(start)
+			fmt.Println("Load db person query total time:", elapsed)
+			Logger.Info("load db game over the len of mius is", len(mius))
 			if err0 != nil {
 				Logger.Critical(err0.Error())
 				return
 			}
-			//fmt.Println("mius is", mius[0])
 			Sync(mius, def)
 			timer = time.NewTicker(time.Duration(interval) * time.Second)
 
