@@ -12,7 +12,7 @@ import (
 )
 
 var err error
-var version string = "1.0.0PR11"
+var version string = "1.0.0PR12"
 
 func main() {
 
@@ -78,8 +78,9 @@ func main() {
 		case <-timer.C:
 
 			start := time.Now()
+			fmt.Println("Start to Load DB GetAllPerson... The Current time is ", start)
 			Logger.Info("Start to Load DB GetAllPerson... The Current time is ", start)
-			mius, err0 := GetAllPerson(db)
+			mius, err0 := GetAllPerson1(db)
 			fmt.Println("load db game over the len of mius is ", len(mius))
 			Logger.Info("load db game over the len of mius is ", len(mius))
 			elapsed := time.Since(start)

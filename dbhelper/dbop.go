@@ -74,7 +74,7 @@ func InsertWalkHour(db *sql.DB, uc *User_walkdays_struct) error {
 	//天内跨小时,也写增量..
 	if !spanday && util.JudgeInSameHour(uc.LastuploadTime, time.Now().Unix()) == false {
 
-		fmt.Println("in tian kua", uc.LastuploadTime, time.Now().Unix())
+		//fmt.Println("in tian kua", uc.LastuploadTime, time.Now().Unix())
 
 		var currentsteps, formersteps int
 		if rsteps, ok := Map.Get(uc.Uid); ok {
@@ -117,11 +117,11 @@ func InsertWalkHour(db *sql.DB, uc *User_walkdays_struct) error {
 					return err
 				}
 			}
-			fmt.Println("重新计算后的formersteps ", formersteps)
+			//fmt.Println("重新计算后的formersteps ", formersteps)
 		}
 
 		increment := currentsteps - formersteps
-		fmt.Println("increment is", increment)
+		//fmt.Println("increment is", increment)
 
 		column := "hour" + strconv.Itoa(time.Now().Hour())
 
@@ -129,7 +129,7 @@ func InsertWalkHour(db *sql.DB, uc *User_walkdays_struct) error {
 		newstepwith := uc.Walkdays[0].Stepwidth
 		newvalue := fmt.Sprintf("%d,%d,%d,%d,0,0", newsteps, newsteps*newstepwith, newsteps, newsteps*newstepwith)
 
-		fmt.Println("天内跨小时写增量", newsteps, newstepwith, newvalue)
+		//fmt.Println("天内跨小时写增量", newsteps, newstepwith, newvalue)
 
 		//重新运算，更新DB
 		us := "update wanbu_data_walkhour set " + column + "= '" + newvalue + "' where userid = ? and walkdate = ? "
@@ -161,7 +161,7 @@ func InsertWalkHour(db *sql.DB, uc *User_walkdays_struct) error {
 		}
 
 		increment := currentsteps - formersteps
-		fmt.Println("increment is", increment)
+		//fmt.Println("increment is", increment)
 
 		column := "hour" + strconv.Itoa(time.Now().Hour())
 
@@ -186,7 +186,7 @@ func InsertWalkHour(db *sql.DB, uc *User_walkdays_struct) error {
 		newstepwith := uc.Walkdays[0].Stepwidth
 		newvalue := fmt.Sprintf("%d,%d,%d,%d,0,0", newsteps, newsteps*newstepwith, newsteps, newsteps*newstepwith)
 
-		fmt.Println("everything is new ", newsteps, newstepwith, newvalue)
+		//fmt.Println("everything is new ", newsteps, newstepwith, newvalue)
 
 		//重新运算，更新DB
 		us := "update wanbu_data_walkhour set " + column + "= '" + newvalue + "' where userid = ? and walkdate = ? "
@@ -308,7 +308,7 @@ func GetAllPerson1(db *sql.DB) ([]*Miu, error) {
 
 	//一次性获取需要更新数据的人，找到授权码未过期并且当前绑定设备为小秘手环的人
 	//qs := "select userid,appid,accesstoken,mackey from  wanbu_mi_sync where flag=0 and status =0 "
-	qs := "select ws.userid,ws.appid,ws.accesstoken,ws.mackey,from_unixtime(wu.lastuploadtime,'%Y-%m-%d'),wu.lastuploadtime from  wanbu_mi_sync ws,wanbu_data_userdevice wu where ws.flag=0 and ws.status =0 and ws.userid = wu.userid"
+	qs := "select ws.userid,ws.appid,ws.accesstoken,ws.mackey,from_unixtime(wu.lastuploadtime,'%Y-%m-%d'),wu.lastuploadtime from  wanbu_mi_sync ws,wanbu_data_userdevice wu where ws.flag=0 and ws.status =0 and ws.userid = wu.userid "
 	rows, err := db.Query(qs)
 	if err != nil {
 		return nil, err

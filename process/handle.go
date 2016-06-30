@@ -146,7 +146,7 @@ func Decode(msg Reback) error {
 	uc.Uid = msg.Userid
 	uc.LastuploadTime = msg.LastuploadTime
 	uc.Walkdays = walkdays
-	fmt.Println("uc is", uc)
+	//fmt.Println("uc is", uc)
 
 	User_walk_data_chan <- uc
 
