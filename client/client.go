@@ -48,7 +48,7 @@ func Post(r *Miu) {
 
 	//fmt.Printf("userid【%d】,request【%s】\n", r.Userid, re)
 
-	timeout := time.Duration(2 * time.Second)
+	timeout := time.Duration(5 * time.Second)
 	client := &http.Client{
 		Timeout: timeout,
 	}
