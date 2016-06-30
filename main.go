@@ -78,12 +78,13 @@ func main() {
 		case <-timer.C:
 
 			start := time.Now()
+			Logger.Info("Start to Load DB GetAllPerson... The Current time is ", start)
 			mius, err0 := GetAllPerson(db)
-			fmt.Println("load db game over the len of mius is", len(mius))
-			Logger.Info("load db game over the len of mius is", len(mius))
+			fmt.Println("load db game over the len of mius is ", len(mius))
+			Logger.Info("load db game over the len of mius is ", len(mius))
 			elapsed := time.Since(start)
-			fmt.Println("Load db person query total time:", elapsed)
-			Logger.Info("load db game over the len of mius is", len(mius))
+			fmt.Println("Load DB GetAllPerson query total time:", elapsed)
+			Logger.Info("Load DB GetAllPerson query total time:", elapsed)
 			if err0 != nil {
 				Logger.Critical(err0.Error())
 				return
