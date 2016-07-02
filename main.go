@@ -12,7 +12,8 @@ import (
 )
 
 var err error
-var version string = "1.0.0PR12"
+var version string = "1.0.0PR13"
+var count int = 0
 
 func main() {
 
@@ -70,32 +71,55 @@ func main() {
 
 	}()
 
-	fmt.Println("interval is", interval)
-	timer := time.NewTicker(time.Duration(1) * time.Millisecond)
+	//fmt.Println("interval is", interval)
+	var timer *time.Ticker
+	timer = time.NewTicker(time.Duration(1) * time.Millisecond)
 	defer timer.Stop()
-	for {
-		select {
-		case <-timer.C:
 
-			start := time.Now()
-			fmt.Println("Start to Load DB GetAllPerson... The Current time is ", start)
-			Logger.Info("Start to Load DB GetAllPerson... The Current time is ", start)
-			mius, err0 := GetAllPerson1(db)
-			fmt.Println("load db game over the len of mius is ", len(mius))
-			Logger.Info("load db game over the len of mius is ", len(mius))
-			elapsed := time.Since(start)
-			fmt.Println("Load DB GetAllPerson query total time:", elapsed)
-			Logger.Info("Load DB GetAllPerson query total time:", elapsed)
-			if err0 != nil {
-				Logger.Critical(err0.Error())
-				return
+	//第一次跑..
+	if count == 0 {
+
+		count = 1
+		start := time.Now()
+		fmt.Println("Start to Load DB GetAllPerson... The Current time is ", start)
+		Logger.Info("Start to Load DB GetAllPerson... The Current time is ", start)
+		mius, err0 := GetAllPerson(db)
+		fmt.Println("load db game over the len of mius is ", len(mius))
+		Logger.Info("load db game over the len of mius is ", len(mius))
+		elapsed := time.Since(start)
+		fmt.Println("Load DB GetAllPerson query total time:", elapsed)
+		Logger.Info("Load DB GetAllPerson query total time:", elapsed)
+		if err0 != nil {
+			Logger.Critical(err0.Error())
+			return
+		}
+
+		Sync(mius, def)
+	}
+
+	if count == 1 {
+
+		timer = time.NewTicker(time.Duration(interval) * time.Second)
+
+		for {
+			select {
+			case <-timer.C:
+
+				start := time.Now()
+				fmt.Println("Start to Load DB GetAllPerson... The Current time is ", start)
+				Logger.Info("Start to Load DB GetAllPerson... The Current time is ", start)
+				mius, err0 := GetAllPerson(db)
+				fmt.Println("load db game over the len of mius is ", len(mius))
+				Logger.Info("load db game over the len of mius is ", len(mius))
+				elapsed := time.Since(start)
+				fmt.Println("Load DB GetAllPerson query total time:", elapsed)
+				Logger.Info("Load DB GetAllPerson query total time:", elapsed)
+				if err0 != nil {
+					Logger.Critical(err0.Error())
+					return
+				}
+				Sync(mius, def)
 			}
-			Sync(mius, def)
-			timer = time.NewTicker(time.Duration(interval) * time.Second)
-
-		default:
-			time.Sleep(1 * time.Second)
-			//fmt.Println("休息2s，继续工作！")
 		}
 	}
 }

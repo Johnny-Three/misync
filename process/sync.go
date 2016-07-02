@@ -67,61 +67,21 @@ func DealReuqest(rein *Miu) ([]Miu, error) {
 //需要同步的人群，开始并行同步，每次def并发量
 func Sync(uids []*Miu, def int) {
 
-	stepth := len(uids) / def
-	//fmt.Println("stepth is: ", stepth)
+	//for j := 0; j < len(uids); j++ {
+	for j := 0; j < len(uids); j++ {
+		time.Sleep(10 * time.Millisecond)
 
-	for i := 0; i < stepth; i++ {
+		go func(j int) {
+			res, err := DealReuqest(uids[j])
 
-		time.Sleep(1 * time.Millisecond)
-
-		for j := i * def; j < (i+1)*def; j++ {
-
-			wg.Add(1)
-
-			go func(j int) {
-				defer wg.Done()
-				//todo .. 处理每个用户，从小米获取信息，处理信息并入库
-				//fmt.Println("hi,Sync is running in batch ")
-				res, err := DealReuqest(uids[j])
-				if err != nil {
-					Logger.Critical(err)
-					return
-				}
-				for i := 0; i < len(res); i++ {
-					client.Post(&res[i])
-				}
-
-			}(j)
-		}
-		wg.Wait()
-	}
-
-	yu := len(uids) % def
-	//模除部分处理
-	if yu != 0 {
-
-		for j := stepth * def; j < len(uids); j++ {
-
-			time.Sleep(1 * time.Millisecond)
-
-			wg.Add(1)
-			go func(j int) {
-				defer wg.Done()
-				//todo .. 处理每个用户，从小米获取信息，处理信息并入库
-				//fmt.Println("hi,Sync is running in yu ")
-				res, err := DealReuqest(uids[j])
-				if err != nil {
-					fmt.Println(err)
-					Logger.Critical(err)
-					return
-				}
-				for i := 0; i < len(res); i++ {
-					client.Post(&res[i])
-				}
-			}(j)
-		}
-
-		wg.Wait()
-
+			if err != nil {
+				fmt.Println(err)
+				Logger.Critical(err)
+				return
+			}
+			for i := 0; i < len(res); i++ {
+				client.Post(&res[i])
+			}
+		}(j)
 	}
 }

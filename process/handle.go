@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/bitly/go-simplejson"
 	"strconv"
-	"strings"
+	//"strings"
 	"time"
 	"wbproject/miusync/client"
 	. "wbproject/miusync/dbhelper"
@@ -42,6 +42,7 @@ func Decode(msg Reback) error {
 	walkdays := []AnswerData{}
 	//Logger.Debug("in decode the msg is", msg)
 	//Logger.Info("in decode the msg is", msg)
+	ctime := GetTimestamp(time.Unix(time.Now().Unix(), 0).Format("2006-01-02"))
 	arr, _ := js.Get("data").Array()
 	for index, _ := range arr {
 
@@ -49,13 +50,11 @@ func Decode(msg Reback) error {
 		walkdate := js.Get("data").GetIndex(index).Get("date").MustString()
 		ad.Walkdate = GetTimestamp(walkdate)
 
-		var tmp int64 = time.Now().Unix()
-		var currentdate string = time.Unix(tmp, 0).Format("2006-01-02")
 		//判断当前时间是否和传回的时间相等，如果相等，则从内存中拿到对应的step数据，如果step没有变化，
 		//则后续操作全免除，如果内存中没有用户对应的数据，则在数据入库后需要将数据更新过去；
 		//如果有变化，入库后数据需要更新过去；
 		//fmt.Println(currentdate, walkdate)
-		if strings.EqualFold(currentdate, walkdate) {
+		if index == len(arr)-1 && ctime >= ad.Walkdate {
 
 			//step
 			step := js.Get("data").GetIndex(index).Get("step").MustString()
@@ -80,7 +79,6 @@ func Decode(msg Reback) error {
 				}
 			} else {
 
-				Logger.Info("Get msg:", msg)
 				//混沌初开的时候并不存在map值,mapold里面放入0
 				Map.Set(msg.Userid, st)
 				MapOld.Set(msg.Userid, 0)

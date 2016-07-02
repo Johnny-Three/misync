@@ -6,6 +6,7 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"strconv"
+	//"sync/atomic"
 	"time"
 	//. "wbproject/miusync/process"
 	. "wbproject/miusync/structure"
@@ -14,6 +15,7 @@ import (
 
 var miuserial = "068000001110000000000000"
 var hourstep, moyu, h23, hc int
+var hourcount, daycount int32
 
 func InsertWalkHour(db *sql.DB, uc *User_walkdays_struct) error {
 
@@ -26,13 +28,13 @@ func InsertWalkHour(db *sql.DB, uc *User_walkdays_struct) error {
 	//跨天所有数据写h23，天内跨小时写当前小时（直接写）、小时内同样写当前小时(增量写)
 
 	var spanday bool
-
 	//跨天的第一个条件：修改了lastuploadtime为昨天且今天无数据，相当于重新写昨天的小时数据，有很大的风险，因为这将会重写昨天的小时数据到23点)  (currentdate != enddate && enddate == begindate) ，考虑后还是先不加，本身逻辑有问题且不合乎事宜
 	//问题描述：今日无数据，昨日有数据，修改lastuploadtime为昨天，因为spanday不跨天,会进入小时增量的分支
 
 	//跨天
 	if util.DaysDiff(enddate, begindate) > 0 {
 
+		//atomic.AddInt32(&hourcount, 1)
 		spanday = true
 
 		sqlStr := `
@@ -205,8 +207,6 @@ func InsertWalkHour(db *sql.DB, uc *User_walkdays_struct) error {
 
 func InsertWalkDay(db *sql.DB, uc *User_walkdays_struct) error {
 
-	//if DaysDiff
-	//IF(stepnumber < VALUES(stepnumber),VALUES(exerciseamount), exerciseamount)
 	sqlStr := `
 	   INSERT INTO wanbu_data_walkday (userid, walkdate, timestamp, servertime, deviceserial, stepwidth, weight, goalstepnum, stepnumber, walkdistance, walktime, calorieconsumed, fatconsumed, exerciseamount, heartvalue, timezonenum, timezone, manualflag, zmflag, faststepnum, dataflag) 
 	   VALUES`
@@ -222,16 +222,8 @@ func InsertWalkDay(db *sql.DB, uc *User_walkdays_struct) error {
 	//trim the last ,
 	sqlStr = sqlStr[0 : len(sqlStr)-1]
 
-	/*
-		sqlStr += `ON DUPLICATE KEY UPDATE timestamp = VALUES(timestamp),servertime = VALUES(servertime),stepwidth = VALUES(stepwidth),weight = VALUES(weight),goalstepnum = VALUES(goalstepnum),stepnumber = VALUES(stepnumber),walkdistance = VALUES(walkdistance),walktime = VALUES(walktime),calorieconsumed = VALUES(calorieconsumed),fatconsumed = VALUES(fatconsumed),exerciseamount = VALUES(exerciseamount)`
-	*/
-
-	/*
-		sqlStr += `ON DUPLICATE KEY UPDATE timestamp =  IF(stepnumber < VALUES(stepnumber),VALUES(timestamp), timestamp),servertime = IF(stepnumber < VALUES(stepnumber),VALUES(servertime), servertime),stepwidth = IF(stepnumber < VALUES(stepnumber),VALUES(stepwidth), stepwidth),weight = IF(stepnumber < VALUES(stepnumber),VALUES(weight), weight),goalstepnum = IF(stepnumber < VALUES(stepnumber),VALUES(goalstepnum), goalstepnum),stepnumber = IF(stepnumber < VALUES(stepnumber),VALUES(stepnumber), stepnumber),walkdistance = IF(stepnumber < VALUES(stepnumber),VALUES(walkdistance), walkdistance),walktime = IF(stepnumber < VALUES(stepnumber),VALUES(walktime), walktime),calorieconsumed = IF(stepnumber < VALUES(stepnumber),VALUES(calorieconsumed), calorieconsumed),fatconsumed = IF(stepnumber < VALUES(stepnumber),VALUES(fatconsumed), fatconsumed),exerciseamount = IF(stepnumber < VALUES(stepnumber),VALUES(exerciseamount), exerciseamount)`
-	*/
-
 	sqlStr += `
-		ON DUPLICATE KEY UPDATE timestamp =  IF(stepnumber < VALUES(stepnumber),VALUES(timestamp), timestamp),servertime = IF(stepnumber < VALUES(stepnumber),VALUES(servertime), servertime),stepwidth = IF(stepnumber < VALUES(stepnumber),VALUES(stepwidth), stepwidth),weight = IF(stepnumber < VALUES(stepnumber),VALUES(weight), weight),goalstepnum = IF(stepnumber < VALUES(stepnumber),VALUES(goalstepnum), goalstepnum),walkdistance = IF(stepnumber < VALUES(stepnumber),VALUES(walkdistance),walkdistance),walktime = IF(stepnumber < VALUES(stepnumber),VALUES(walktime), walktime),calorieconsumed = IF(stepnumber < VALUES(stepnumber),VALUES(calorieconsumed), calorieconsumed),fatconsumed = IF(stepnumber < VALUES(stepnumber),VALUES(fatconsumed), fatconsumed),exerciseamount = IF(stepnumber < VALUES(stepnumber),VALUES(exerciseamount), exerciseamount),deviceserial=IF(stepnumber < VALUES(stepnumber),VALUES(deviceserial),deviceserial),stepnumber = IF(stepnumber < VALUES(stepnumber),VALUES(stepnumber), stepnumber)`
+		ON DUPLICATE KEY UPDATE timestamp =  VALUES(timestamp),servertime = VALUES(servertime),stepwidth = IF(stepnumber < VALUES(stepnumber),VALUES(stepwidth), stepwidth),weight = IF(stepnumber < VALUES(stepnumber),VALUES(weight), weight),goalstepnum = IF(stepnumber < VALUES(stepnumber),VALUES(goalstepnum), goalstepnum),walkdistance = IF(stepnumber < VALUES(stepnumber),VALUES(walkdistance),walkdistance),walktime = IF(stepnumber < VALUES(stepnumber),VALUES(walktime), walktime),calorieconsumed = IF(stepnumber < VALUES(stepnumber),VALUES(calorieconsumed), calorieconsumed),fatconsumed = IF(stepnumber < VALUES(stepnumber),VALUES(fatconsumed), fatconsumed),exerciseamount = IF(stepnumber < VALUES(stepnumber),VALUES(exerciseamount), exerciseamount),deviceserial=IF(stepnumber < VALUES(stepnumber),VALUES(deviceserial),deviceserial),stepnumber = IF(stepnumber < VALUES(stepnumber),VALUES(stepnumber), stepnumber)`
 
 	//format all vals at once
 	_, err := db.Exec(sqlStr, vals...)
@@ -240,6 +232,8 @@ func InsertWalkDay(db *sql.DB, uc *User_walkdays_struct) error {
 		return err
 	}
 
+	//atomic.AddInt32(&daycount, 1)
+	//fmt.Printf("insert %d day data\n", daycount)
 	return nil
 }
 
@@ -302,13 +296,13 @@ func ModifyPerson(db *sql.DB) error {
 	return nil
 }
 
-func GetAllPerson1(db *sql.DB) ([]*Miu, error) {
+func GetAllPerson(db *sql.DB) ([]*Miu, error) {
 
 	res := []*Miu{}
 
 	//一次性获取需要更新数据的人，找到授权码未过期并且当前绑定设备为小秘手环的人
 	//qs := "select userid,appid,accesstoken,mackey from  wanbu_mi_sync where flag=0 and status =0 "
-	qs := "select ws.userid,ws.appid,ws.accesstoken,ws.mackey,from_unixtime(wu.lastuploadtime,'%Y-%m-%d'),wu.lastuploadtime from  wanbu_mi_sync ws,wanbu_data_userdevice wu where ws.flag=0 and ws.status =0 and ws.userid = wu.userid "
+	qs := "select distinct(ws.userid),ws.appid,ws.accesstoken,ws.mackey,from_unixtime(wu.lastuploadtime,'%Y-%m-%d'),wu.lastuploadtime from  wanbu_mi_sync ws,wanbu_data_userdevice wu where ws.flag=0 and ws.status =0 and ws.userid = wu.userid "
 	rows, err := db.Query(qs)
 	if err != nil {
 		return nil, err
@@ -332,60 +326,4 @@ func GetAllPerson1(db *sql.DB) ([]*Miu, error) {
 	}
 	//fmt.Println("GetAllPerson...", res)
 	return res, nil
-}
-
-func GetAllPerson(db *sql.DB) ([]*Miu, error) {
-
-	res := []*Miu{}
-
-	//一次性获取需要更新数据的人，找到授权码未过期并且当前绑定设备为小秘手环的人
-	qs := "select userid,appid,accesstoken,mackey from  wanbu_mi_sync where flag=0 and status =0 "
-
-	rows, err := db.Query(qs)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	for rows.Next() {
-
-		re := &Miu{}
-		re.MiuPrepare()
-		err := rows.Scan(&re.Userid, &re.Appid, &re.Access_token, &re.Mac_key)
-		if err != nil {
-			return nil, err
-		}
-
-		err0 := GetDate(re, db)
-		if err0 != nil {
-			return nil, err0
-		}
-
-		res = append(res, re)
-
-	}
-	//fmt.Println("GetAllPerson...", res)
-	return res, nil
-}
-
-func GetDate(re *Miu, db *sql.DB) error {
-
-	//格式化时间，测试过如果lastuploadtime为0自动赋值为1970年
-	qs := "select from_unixtime(lastuploadtime,'%Y-%m-%d'),lastuploadtime from wanbu_data_userdevice where userid=?"
-	rows, err := db.Query(qs, re.Userid)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-	for rows.Next() {
-		err := rows.Scan(&re.Fromdate, &re.LastuploadTime)
-		if err != nil {
-			return err
-		}
-	}
-	//re.Fromdate = "2016-05-26"
-	var t int64 = time.Now().Unix()
-	var s string = time.Unix(t, 0).Format("2006-01-02")
-	//截止到当前时间
-	re.Todate = s
-	return nil
 }
