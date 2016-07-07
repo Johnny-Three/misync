@@ -85,13 +85,13 @@ func Decode(msg Reback) error {
 			}
 		}
 
-		//walkdistance 米到厘米转化*1000
+		//walkdistance 米到厘米转化*100
 		walkdistance := js.Get("data").GetIndex(index).Get("walkDistance").MustString()
 		wd, edt := strconv.Atoi(walkdistance)
 		if edt != nil {
 			fmt.Println("walkdistance 字符串转换成整数失败")
 		}
-		ad.Walkdistance = wd * 1000
+		ad.Walkdistance = wd * 100
 
 		//walktime
 		walktime := js.Get("data").GetIndex(index).Get("walkTime").MustString()
