@@ -95,6 +95,7 @@ func (t *Miu) MiuPrepare() {
 type User_walkdays_struct struct {
 	Uid            int
 	LastuploadTime int64
+	RecentTime     int64
 	Walkdays       []AnswerData
 }
 

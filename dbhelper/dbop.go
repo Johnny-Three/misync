@@ -263,8 +263,8 @@ func SetAnswerData(db *sql.DB, ad *AnswerData, uid int) error {
 
 func ModifyLastuploadtime(db *sql.DB, m *User_walkdays_struct) error {
 
-	us := "update wanbu_data_userdevice set lastuploadtime = UNIX_TIMESTAMP() where userid=?"
-	_, err := db.Exec(us, m.Uid)
+	us := "update wanbu_data_userdevice set lastuploadtime = ? where userid=?"
+	_, err := db.Exec(us, m.RecentTime, m.Uid)
 
 	if err != nil {
 		return err

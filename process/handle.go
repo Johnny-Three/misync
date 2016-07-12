@@ -39,6 +39,7 @@ func Decode(msg Reback) error {
 	}
 
 	var ad AnswerData
+	var recentdatetime int64
 	walkdays := []AnswerData{}
 	//Logger.Debug("in decode the msg is", msg)
 	//Logger.Info("in decode the msg is", msg)
@@ -79,10 +80,13 @@ func Decode(msg Reback) error {
 				}
 			} else {
 
+				Logger.Info("Get msg:", msg)
 				//混沌初开的时候并不存在map值,mapold里面放入0
 				Map.Set(msg.Userid, st)
 				MapOld.Set(msg.Userid, 0)
 			}
+			//最近日期作为lastuploadtime进行更新
+			recentdatetime = ad.Walkdate
 		}
 
 		//walkdistance 米到厘米转化*100
@@ -143,6 +147,7 @@ func Decode(msg Reback) error {
 	var uc User_walkdays_struct
 	uc.Uid = msg.Userid
 	uc.LastuploadTime = msg.LastuploadTime
+	uc.RecentTime = recentdatetime
 	uc.Walkdays = walkdays
 	//fmt.Println("uc is", uc)
 
